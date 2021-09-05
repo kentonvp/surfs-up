@@ -22,3 +22,11 @@
     ```bash
     (dev_env) $ pip install -r requirements.txt
     ```
+
+
+## **Running Tests:**
+- Run all tests in `test/`
+
+    ```bash
+    (dev_env) $ python3 -m unittest -v
+    ```
