@@ -6,29 +6,27 @@ from surfsup.login_info import LoginInfo
 
 
 class TestLoginInfo(unittest.TestCase):
+    env_username:str = "SURFLINE_USERNAME"
+    env_password:str = "SURFLINE_PASSWORD"
 
     def test_not_found(self):
-        if os.getenv("USERNAME") != None:
-            os.environ.pop("USERNAME")
+        if os.getenv(self.env_username) != None:
+            os.environ.pop(self.env_username)
 
-        if os.getenv("PASSWORD") != None:
-            os.environ.pop("PASSWORD")
+        if os.getenv(self.env_password) != None:
+            os.environ.pop(self.env_password)
 
         with self.assertRaises(UserInfoNotFoundException):
             LoginInfo()
 
     def test_initialize(self):
-        test_username:str = "dummy_username"
-        test_password:str = "dummy_password"
-
-        os.environ["USERNAME"] = test_username
-        os.environ["PASSWORD"] = test_password
+        os.environ["USERNAME"] = self.env_username
+        os.environ["PASSWORD"] = self.env_password
 
         login = LoginInfo()
 
-        self.assertEqual(login.username, test_username)
-        self.assertEqual(login.password, test_password)
-
+        self.assertEqual(login.username, self.env_username)
+        self.assertEqual(login.password, self.env_password)
 
 
 if __name__ == '__main__':
