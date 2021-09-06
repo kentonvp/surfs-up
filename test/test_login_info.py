@@ -20,13 +20,16 @@ class TestLoginInfo(unittest.TestCase):
             LoginInfo()
 
     def test_initialize(self):
-        os.environ["USERNAME"] = self.env_username
-        os.environ["PASSWORD"] = self.env_password
+        test_username:str = "dummy_username"
+        test_password:str = "dummy_password"
+
+        os.environ[self.env_username] = test_username
+        os.environ[self.env_password] = test_password
 
         login = LoginInfo()
 
-        self.assertEqual(login.username, self.env_username)
-        self.assertEqual(login.password, self.env_password)
+        self.assertEqual(login.username, test_username)
+        self.assertEqual(login.password, test_password)
 
 
 if __name__ == '__main__':
