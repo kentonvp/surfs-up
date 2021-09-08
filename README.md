@@ -30,3 +30,15 @@
     ```bash
     (dev_env) $ python3 -m unittest -v
     ```
+
+## **Playground Instructions:**
+
+```bash
+(dev_env) $ SURFLINE_USERNAME=XXXXX SURFLINE_PASSWORD=XXXXX python3 playground.py
+<class 'requests.models.Response'>
+parsing took 0.06013798713684082 seconds
+{   'forecast': {
+    ...
+    }
+}
+```
