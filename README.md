@@ -31,6 +31,26 @@
     (dev_env) $ python3 -m unittest -v
     ```
 
+## **Running Coverage Report:**
+1. Run coverage using tests as entry point
+
+    ```bash
+    (dev_env) $ coverage run -m unittest
+    ```
+
+2. Show coverage report to terminal
+
+    ```bash
+    (dev_env) $ coverage report
+    ```
+
+3. Show coverage report to html
+
+    ```bash
+    (dev_env) $ coverage html
+    (dev_env) $ open coverage_html/index.html
+    ```
+
 ## **Playground Instructions:**
 
 ```bash
