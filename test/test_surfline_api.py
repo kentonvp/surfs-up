@@ -28,7 +28,9 @@ class TestSurflineSpotDB(unittest.TestCase):
         self.database.flush()
 
     def setUp(self) -> None:
-        self.database = SurflineSpotDB(self.fake_db)
+        super().setUp()
+        self.database = SurflineSpotDB(joinpath("init_fake_db.csv"))
+        self.database.db_name = self.fake_db
 
 
     def test_database_not_found(self) -> None:
@@ -78,7 +80,34 @@ class TestSurflineSpotDB(unittest.TestCase):
         self.assertNotEqual(recently_added, "blackies,somehash,32.12345,3.54321,Blackies Pier,/surf-report/blackies/somehash\n")
 
     def test_select_record(self):
-        pass
+        rec = SpotRecord.from_dict({
+            'name': 'blackies',
+            'spot_id': 'somehash1',
+            'latitude': 32.12345,
+            'longitude': 3.54321,
+            'formal_name': 'Blackies Pier',
+            'url': '/surf-report/blackies/somehash'
+        })
+        self.database.add_record(rec)
+
+        rec2 = SpotRecord.from_dict({
+            'name': 'blackies2',
+            'spot_id': 'somehash2',
+            'latitude': 32.123452,
+            'longitude': 3.543212,
+            'formal_name': 'Blackies Pier2',
+            'url': '/surf-report/blackies/somehash2'
+        })
+        self.database.add_record(rec2)
+
+        self.assertEqual(len(self.database.table), 3)
+
+        lookup_rec = self.database.select('blackies')
+        lookup_rec2_by_att = self.database.select('somehash2', by_att='spot_id')
+
+        self.assertEqual(lookup_rec, rec)
+        self.assertEqual(lookup_rec2_by_att, rec2)
+        self.assertNotEqual(lookup_rec, lookup_rec2_by_att)
 
     def tearDown(self) -> None:
         to_remove = [joinpath(x) for x in ["no_file_with_this_name.csv", "test_output.csv"]]

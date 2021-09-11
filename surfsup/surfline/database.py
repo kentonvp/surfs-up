@@ -64,7 +64,7 @@ class SurflineSpotDB:
 
     def select(self, val, by_att:str="name") -> SpotRecord:
         row_idx = self.__get_idx(val, by_att)
-        rec_dict = self.table.iat(row_idx).to_dict()
+        rec_dict = self.table.iloc[row_idx].to_dict()
         return SpotRecord.from_dict(rec_dict)
 
     def flush(self) -> None:
