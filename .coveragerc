@@ -1,0 +1,11 @@
+[run]
+command_line = coverage run -m unittest
+
+omit =
+    dev_env/*
+
+data_file = .coverage
+
+
+[html]
+directory = coverage_html

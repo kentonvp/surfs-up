@@ -1,3 +1,10 @@
+**.DS_Store
 **/dev_env
 **/.vscode
 **/__pycache__
+**.json
+
+
+# coverage code
+**/.coverage
+**/coverage_html

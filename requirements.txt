@@ -2,3 +2,4 @@ pip
 wheel
 bs4
 pandas
+coverage
