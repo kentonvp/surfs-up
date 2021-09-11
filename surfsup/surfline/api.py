@@ -1,5 +1,5 @@
 import json
-from surfsup.surfline.database import SurflineDatabase
+from surfsup.surfline.database import SurflineSpotDB
 import time
 
 import requests
@@ -13,7 +13,7 @@ class SurflineAPI:
 
     def __init__(self, login:LoginInfo, db_name:str):
         self.login = login
-        self.lookup_db = SurflineDatabase(db_name)
+        self.lookup_db = SurflineSpotDB(db_name)
 
     def authenticate_user(self, s:requests.Session) -> Response:
         url_path = "https://services.surfline.com/trusted/token?isShortLived=false"
@@ -37,6 +37,7 @@ class SurflineAPI:
         # this the values shouldn't change too much...So, might be worth
         # simplicity to have a manual CSV which we read in at the the top.
         # (lookup_db)
+        spot_record = self.lookup_db.select(spot_name, by_att="name")
         return "https://surfline.com/surf-report/blacks/5842041f4e65fad6a770883b"
 
 
@@ -50,6 +51,10 @@ class SurflineAPI:
         print("parsing took {} seconds".format(time.time() - start_tm))
 
         return spot_data
+
+
+    def multi_spot_check(self, s, spot_urls):
+        pass
 
 
     def parse_spot_check_response(self, resp:Response) -> dict:
