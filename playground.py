@@ -1,12 +1,14 @@
-import requests
-
+import os
 from pprint import PrettyPrinter
+
+import requests
 
 from surfsup.login_info import LoginInfo
 from surfsup.surfline.api import SurflineAPI
 
 login = LoginInfo()
-surfline = SurflineAPI(login, "")
+db_name = os.path.join("surfsup", "surfline", "spot_lookups.csv")
+surfline = SurflineAPI(login, db_name)
 
 pp = PrettyPrinter(indent=4, width=500, compact=False)
 
