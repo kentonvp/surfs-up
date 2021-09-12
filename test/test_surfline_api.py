@@ -1,10 +1,14 @@
 import os
 import unittest
+from pprint import PrettyPrinter
 from shutil import copy
 
+import requests
 from genericpath import exists
 from surfsup.excepts import InvalidSchemaException
 from surfsup.surfline.database import SpotRecord, SurflineSpotDB
+from surfsup.login_info import LoginInfo
+from surfsup.surfline.api import SurflineAPI
 
 
 def joinpath(fname:str) -> str:
@@ -114,6 +118,23 @@ class TestSurflineSpotDB(unittest.TestCase):
         for fname in to_remove:
             if exists(fname):
                 os.remove(fname)
+
+
+class TestSurflineAPI(unittest.TestCase):
+    def test_playground(self):
+        login = LoginInfo(os.environ["SURFLINE_USERNAME"], os.environ["SURFLINE_PASSWORD"])
+        db_name = os.path.join("surfsup", "surfline", "spot_lookups.csv")
+        surfline = SurflineAPI(login, db_name)
+
+        mydata = None
+        with requests.Session() as s:
+            surfline.authenticate_user(s)
+
+            spot_url = surfline.build_spot_url("blacks")
+
+            mydata = surfline.spot_check(s, spot_url)
+
+            self.assertIsInstance(mydata, dict)
 
 
 if __name__ == '__main':
