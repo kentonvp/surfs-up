@@ -21,12 +21,12 @@ class SpotRecord:
     @classmethod
     def from_dict(cls, rec_dict:dict):
         return cls(
-            name = rec_dict["name"],
-            spot_id = rec_dict["spot_id"],
-            latitude = rec_dict["latitude"],
-            longitude = rec_dict["longitude"],
-            formal_name = rec_dict["formal_name"],
-            url = rec_dict["url"])
+            name = rec_dict['name'],
+            spot_id = rec_dict['spot_id'],
+            latitude = rec_dict['latitude'],
+            longitude = rec_dict['longitude'],
+            formal_name = rec_dict['formal_name'],
+            url = rec_dict['url'])
 
     @classmethod
     def fields(cls) -> list[str]:
@@ -62,7 +62,7 @@ class SurflineSpotDB:
 
         self.flush()
 
-    def select(self, val, by_att:str="name") -> SpotRecord:
+    def select(self, val, by_att:str='name') -> SpotRecord:
         row_idx = self.__get_idx(val, by_att)
         rec_dict = self.table.iloc[row_idx].to_dict()
         return SpotRecord.from_dict(rec_dict)
@@ -70,5 +70,5 @@ class SurflineSpotDB:
     def flush(self) -> None:
         self.table[SpotRecord.preferred_order()].to_csv(self.db_name, index=False)
 
-    def __get_idx(self, val, by_att:str="name") -> int:
+    def __get_idx(self, val, by_att:str='name') -> int:
         return self.table[by_att].to_list().index(val)

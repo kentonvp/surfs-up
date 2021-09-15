@@ -19,15 +19,15 @@ class SurflineAPI:
         self.session.close()
 
     def authenticate_user(self, login:LoginInfo, s:requests.Session):
-        url_path = "https://services.surfline.com/trusted/token?isShortLived=false"
+        url_path = 'https://services.surfline.com/trusted/token?isShortLived=false'
         payload = {
-            "grant_type": "password",
-            "username": login.username,
-            "password": login.password,
-            "device_id": "Safari-14.1.2",
-            "device_type": "Safari 14.1.2 on OS X 10.15.7",
-            "forced": True,
-            "authorizationString": "Basic NWM1OWU3YzNmMGI2Y2IxYWQwMmJhZjY2OnNrX1FxWEpkbjZOeTVzTVJ1MjdBbWcz"
+            'grant_type': 'password',
+            'username': login.username,
+            'password': login.password,
+            'device_id': 'Safari-14.1.2',
+            'device_type': 'Safari 14.1.2 on OS X 10.15.7',
+            'forced': True,
+            'authorizationString': 'Basic NWM1OWU3YzNmMGI2Y2IxYWQwMmJhZjY2OnNrX1FxWEpkbjZOeTVzTVJ1MjdBbWcz'
         }
 
         resp = s.post(url_path, data=payload)
@@ -36,13 +36,13 @@ class SurflineAPI:
         return json.loads(resp.text)
 
     def build_spot_url(self, spot_name:str) -> str:
-        # This should go out to a "database" and pull the NAME and ID given the
+        # This should go out to a 'database' and pull the NAME and ID given the
         # name.  Database is a loose word. We don't need massive storage and
         # this the values shouldn't change too much...So, might be worth
         # simplicity to have a manual CSV which we read in at the the top.
         # (lookup_db)
-        spot_record = self.database.select(spot_name, by_att="name")
-        return "https://surfline.com/surf-report/blacks/5842041f4e65fad6a770883b"
+        spot_record = self.database.select(spot_name, by_att='name')
+        return 'https://surfline.com/surf-report/blacks/5842041f4e65fad6a770883b'
 
     def spot_check(self, spot_url:str) -> dict:
         try:
@@ -50,7 +50,7 @@ class SurflineAPI:
             spot_data = self.parse_spot_check_response(resp)
             return spot_data
         except Exception as e:
-            print("Exception trying to check spot: {}".format(spot_url))
+            print('Exception trying to check spot: {}'.format(spot_url))
             print(e)
 
 
@@ -65,10 +65,10 @@ class SurflineAPI:
         return data
 
     def parse_spot_check_response(self, resp:Response) -> dict:
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(resp.text, 'html.parser')
 
         # find the script which contains all the report data
-        to_parse:str = soup.find_all("script")[13].string
+        to_parse:str = soup.find_all('script')[13].string
 
         # parse to a python obj
         s_idx = to_parse.find('=') + 2

@@ -12,7 +12,7 @@ from surfsup.surfline.api import SurflineAPI
 
 
 def joinpath(fname:str) -> str:
-    return os.path.join("test", "testfiles", fname)
+    return os.path.join('test', 'testfiles', fname)
 
 
 class TestSurflineSpotDB(unittest.TestCase):
@@ -22,10 +22,10 @@ class TestSurflineSpotDB(unittest.TestCase):
     def __init__(self, methodName: str) -> None:
         super().__init__(methodName=methodName)
         # initialize with a starter db
-        self.database = SurflineSpotDB(joinpath("init_fake_db.csv"))
+        self.database = SurflineSpotDB(joinpath('init_fake_db.csv'))
 
         # edit the output db so we can mutate during tests
-        self.fake_db = joinpath("test_output.csv")
+        self.fake_db = joinpath('test_output.csv')
         self.database.db_name = self.fake_db
 
         # flush to create the file
@@ -33,19 +33,19 @@ class TestSurflineSpotDB(unittest.TestCase):
 
     def setUp(self) -> None:
         super().setUp()
-        self.database = SurflineSpotDB(joinpath("init_fake_db.csv"))
+        self.database = SurflineSpotDB(joinpath('init_fake_db.csv'))
         self.database.db_name = self.fake_db
 
 
     def test_database_not_found(self) -> None:
-        fname = joinpath("no_file_with_this_name.csv")
+        fname = joinpath('no_file_with_this_name.csv')
         self.assertFalse(exists(fname))
         SurflineSpotDB(fname)
         self.assertTrue(exists(fname))
 
     def test_invalid_database(self) -> None:
         with self.assertRaises(InvalidSchemaException):
-            SurflineSpotDB(joinpath("invalid_schema.csv"))
+            SurflineSpotDB(joinpath('invalid_schema.csv'))
 
     def test_load_database(self):
         self.assertIsInstance(self.database, SurflineSpotDB)
@@ -64,7 +64,7 @@ class TestSurflineSpotDB(unittest.TestCase):
         f1 = open(self.fake_db)
         recently_added = f1.readlines()[-1]
         f1.close()
-        self.assertEqual(recently_added, "blackies,somehash,32.12345,3.54321,Blackies Pier,/surf-report/blackies/somehash\n")
+        self.assertEqual(recently_added, 'blackies,somehash,32.12345,3.54321,Blackies Pier,/surf-report/blackies/somehash\n')
 
     def test_del_record(self):
         rec = SpotRecord.from_dict({
@@ -81,7 +81,7 @@ class TestSurflineSpotDB(unittest.TestCase):
         f1 = open(self.fake_db)
         recently_added = f1.readlines()[-1]
         f1.close()
-        self.assertNotEqual(recently_added, "blackies,somehash,32.12345,3.54321,Blackies Pier,/surf-report/blackies/somehash\n")
+        self.assertNotEqual(recently_added, 'blackies,somehash,32.12345,3.54321,Blackies Pier,/surf-report/blackies/somehash\n')
 
     def test_select_record(self):
         rec = SpotRecord.from_dict({
@@ -114,7 +114,7 @@ class TestSurflineSpotDB(unittest.TestCase):
         self.assertNotEqual(lookup_rec, lookup_rec2_by_att)
 
     def tearDown(self) -> None:
-        to_remove = [joinpath(x) for x in ["no_file_with_this_name.csv", "test_output.csv"]]
+        to_remove = [joinpath(x) for x in ['no_file_with_this_name.csv', 'test_output.csv']]
         for fname in to_remove:
             if exists(fname):
                 os.remove(fname)
@@ -122,15 +122,15 @@ class TestSurflineSpotDB(unittest.TestCase):
 
 class TestSurflineAPI(unittest.TestCase):
     def test_playground(self):
-        login = LoginInfo(os.environ["SURFLINE_USERNAME"], os.environ["SURFLINE_PASSWORD"])
-        db_name = os.path.join("surfsup", "surfline", "spot_lookups.csv")
+        login = LoginInfo(os.environ['SURFLINE_USERNAME'], os.environ['SURFLINE_PASSWORD'])
+        db_name = os.path.join('surfsup', 'surfline', 'spot_lookups.csv')
         surfline = SurflineAPI(login, db_name)
 
         mydata = None
         with requests.Session() as s:
             surfline.authenticate_user(s)
 
-            spot_url = surfline.build_spot_url("blacks")
+            spot_url = surfline.build_spot_url('blacks')
 
             mydata = surfline.spot_check(s, spot_url)
 
