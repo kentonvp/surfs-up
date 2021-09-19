@@ -5,6 +5,7 @@ class UserInfoNotFoundException(Exception):
     '''
     pass
 
+
 class InvalidSchemaException(Exception):
     '''
     Database schema does not match.
