@@ -24,7 +24,7 @@ def gather_spot_urls(resp: requests.Response) -> list[str]:
     for link in all_a:
         tag_str = str(link)
         if 'href' in tag_str and (is_valid_report_url(tag_str) or is_valid_region_url(tag_str)):
-            href = link['href']
+            href = link['href'] # type: ignore
             hrefs.append(href)
 
     return hrefs

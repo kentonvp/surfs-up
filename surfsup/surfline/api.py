@@ -52,7 +52,7 @@ class SurflineAPI:
 
         # find the script which contains all the report data
         script_tag = soup.find_all('script')[13]
-        to_parse = str(script_tag.string)
+        to_parse = str(script_tag.string)   # type: ignore
 
         # parse to a python obj
         s_idx = to_parse.find('=') + 2
