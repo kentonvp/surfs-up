@@ -123,18 +123,18 @@ class TestSurflineSpotDB(unittest.TestCase):
 class TestSurflineAPI(unittest.TestCase):
     def test_playground(self):
         login = LoginInfo(os.environ['SURFLINE_USERNAME'], os.environ['SURFLINE_PASSWORD'])
-        db_name = os.path.join('surfsup', 'surfline', 'spot_lookups.csv')
-        surfline = SurflineAPI(login, db_name)
+
+        db_name = os.path.join('test', 'testfiles', 'init_fake_db.csv')
+        surfline = SurflineAPI(db_name)
 
         mydata = None
-        with requests.Session() as s:
-            surfline.authenticate_user(s)
+        s = requests.session()
+        surfline.authenticate_user(login, s)
 
-            spot_url = surfline.build_spot_url('blacks')
+        spot_url = surfline.build_spot_url('blacks')
+        mydata = surfline.spot_check(spot_url)
 
-            mydata = surfline.spot_check(s, spot_url)
-
-            self.assertIsInstance(mydata, dict)
+        self.assertIsInstance(mydata, dict)
 
 
 if __name__ == '__main':
