@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
+from maps import Location
 
 
 class AbilityLevel(Enum):
@@ -24,12 +25,7 @@ class AccessLevel(Enum):
 
 
 @dataclass
-class Location:
-    longitude: float
-    latitude: float
-
-
-class UserPreferences(ABC):
+class UserPreferences:
     location: Location
     accessibility: AccessLevel
 
@@ -45,3 +41,5 @@ class UserSurfPreferences(UserPreferences):
 
 class User:
     preferences: list[UserSurfPreferences]
+    username: str
+
