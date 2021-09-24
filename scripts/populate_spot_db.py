@@ -91,17 +91,14 @@ def populate_spot_database(db_name: str, starting_link: str = "https://www.surfl
     return errors
 
 
-def main():
-    cwd = os.getcwd()
-    database_name = joinpath(cwd, 'data', 'spot_lookups.csv')
-    errors = populate_spot_database(
-        database_name, 'https://www.surfline.com/surf-report/')
+"""Main"""
+cwd = os.getcwd()
+database_name = joinpath(cwd, 'data', 'spot_lookups.csv')
+errors = populate_spot_database(
+    database_name, 'https://www.surfline.com/surf-report/')
 
-    # print errors to a file
-    with open('error_urls.txt', 'a+') as fname:
-        for err_url in errors:
-            fname.write(err_url + "\n")
+# print errors to a file
+with open('error_urls.txt', 'a+') as fname:
+    for err_url in errors:
+        fname.write(err_url + "\n")
 
-
-if __name__ == '__main__':
-    main()

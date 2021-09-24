@@ -10,6 +10,8 @@ surfsup.egg-info/PKG-INFO
 surfsup.egg-info/SOURCES.txt
 surfsup.egg-info/dependency_links.txt
 surfsup.egg-info/top_level.txt
+surfsup/comm/__init__.py
+surfsup/comm/message_builder.py
 surfsup/surfline/__init__.py
 surfsup/surfline/api.py
 surfsup/surfline/database.py
