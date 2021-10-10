@@ -3,13 +3,14 @@ import json
 import requests
 from bs4 import BeautifulSoup
 from surfsup.login_info import LoginInfo
-from surfsup.surfline.database import SpotRecord, SurflineSpotDB
+from surfsup.surfline.database import SurflineSpotDB
 
 Response = requests.models.Response
 
 
 class SurflineAPI:
     session: requests.Session
+    database: SurflineSpotDB
 
     def __init__(self, db_name: str):
         """Create a surlfine with a connected database."""
@@ -38,11 +39,27 @@ class SurflineAPI:
 
         return json.loads(resp.text)
 
-    def build_spot_url(self, spot_name: str) -> str:
+    def valid_name(self, name: str) -> bool:
+        return name in self.get_spot_names()
+
+    def validate_names(self, names: list[str]):
+        """Check if the names list of spot names are valid"""
+        for n in names:
+            if not self.valid_name(n):
+                print(f'{n} is not a valid spot name')
+                return False
+
+        return True
+
+    def get_spot_names(self) -> list[str]:
+        return list(self.database.table['name'])
+
+    def _build_spot_url(self, spot_name: str) -> str:
         spot_record = self.database.select(spot_name, by_att='name')
         return spot_record.url
 
-    def spot_check(self, spot_url: str) -> dict:
+    def spot_check(self, name: str) -> dict:
+        spot_url = self._build_spot_url(name)
         resp = self.session.get(spot_url)
         spot_data = self.format_report_response_data(resp)
         return spot_data

@@ -21,7 +21,6 @@ class MessageBuilder:
         return f'Surf Report: {value}\nSurf is {surf_min}ft to {surf_max}ft and is {surf_rel.lower()}.\nHave fun!'
 
     def build_report_message(self, spot_name: str) -> str:
-        spot_url = self.surfline.build_spot_url(spot_name)
-        report_data = self.surfline.spot_check(spot_url)
+        report_data = self.surfline.spot_check(spot_name)
         new_message = self.clean(report_data['forecast'])
         return new_message

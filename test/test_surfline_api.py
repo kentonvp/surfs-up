@@ -18,6 +18,7 @@ class TestSurflineSpotDB(unittest.TestCase):
     database: SurflineSpotDB
     fake_db: str
 
+    # test constants
     TEST_DB_NAME = 'init_fake_db.csv'
     TEST_DB_OUTPUT = 'test_output.csv'
     TEST_TMP_DB = 'no_file_with_this_name.csv'
@@ -155,20 +156,21 @@ class TestSurflineAPI(unittest.TestCase):
         with self.assertRaises(AssertionError):
             surfline.authenticate_user(login)
 
-    def test_url_build(self):
+    def test_validate_names_check_happy(self):
         database_fname = test_joinpath(self.TEST_DB_NAME)
         surfline = SurflineAPI(database_fname)
+        self.assertTrue(surfline.validate_names(['Blacks']))
 
-        spot_url = surfline.build_spot_url("Blacks")
-        self.assertEqual(
-            spot_url, 'https://www.surfline.com/surf-report/blacks/5842041f4e65fad6a770883b')
+    def test_valididate_names_check_unhappy(self):
+        database_fname = test_joinpath(self.TEST_DB_NAME)
+        surfline = SurflineAPI(database_fname)
+        self.assertFalse(surfline.validate_names(['UnicornLand123', 'Blackies']))
 
     def test_spot_data_retreival(self):
         database_fname = test_joinpath(self.TEST_DB_NAME)
         surfline = SurflineAPI(database_fname)
 
-        spot_url = surfline.build_spot_url("Blacks")
-        data = surfline.spot_check(spot_url)
+        data = surfline.spot_check('Blacks')
         self.assertSetEqual(set(data.keys()), set(
             ['spot', 'report', 'forecast']))
 
@@ -180,3 +182,4 @@ class TestSurflineAPI(unittest.TestCase):
                 os.remove(fname)
 
         return super().tearDown()
+

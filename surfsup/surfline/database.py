@@ -42,7 +42,7 @@ class SurflineSpotDB:
         self.name = database_fname
         if exists(database_fname):
             self.table = pd.read_csv(
-                database_fname, sep=',', index_col=False, on_bad_lines='warn')  # type: ignore
+                database_fname, sep=',', index_col=False, on_bad_lines='skip')  # type: ignore
             if sorted(list(self.table.columns)) != SpotRecord.fields():
                 raise InvalidSchemaException
         else:
