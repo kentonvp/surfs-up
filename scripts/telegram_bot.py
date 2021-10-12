@@ -3,6 +3,7 @@ import telebot
 import threading
 
 from surfsup.comm.message_builder import MessageBuilder
+from surfsup.maps import Location
 
 
 """Main"""
@@ -21,9 +22,17 @@ def greet(message):
     bot.send_message(message.chat.id, "Hey! Are you ready to shred?")
 
 
-@bot.message_handler(func=lambda message: messenger.is_spot(message.text))
-def report(message):
+# @bot.message_handler(func=lambda message: messenger.is_spot(message.text))
+@bot.message_handler(content_types=['text'])
+def basic_report(message):
     msg = messenger.build_report_message(message.text)
+    bot.send_message(message.chat.id, msg)
+
+@bot.message_handler(content_types=['location'])
+def location_report(message):
+    user_loc = Location(message.location.longitude, message.location.latitude)
+
+    msg=messenger.build_report_message_for_location(user_loc)
     bot.send_message(message.chat.id, msg)
 
 
