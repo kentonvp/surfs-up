@@ -3,6 +3,8 @@ from pprint import PrettyPrinter
 import threading
 import time
 import traceback
+import pandas as pd
+from surfsup.maps import Location, distance_miles
 
 from surfsup.surfline.api import SurflineAPI
 from surfsup.dto.forecast_dto import *
@@ -147,6 +149,83 @@ class ForecastFetcher:
         self.pp.pprint(spot_forecast) if self.verbose > 0 else None
         return spot_forecast
 
+    def by_loc(self, loc: Location, max_radius: int):
+        # deep copy ? do we need to do this? maybe to do inplace sort?
+        df = self.surfline.database.table.copy()
+
+        distance_fn = lambda row: distance_miles(loc, Location(row['latitude'], row['longitude']))
+
+        stime = time.time()
+        df['distance'] = df.apply(distance_fn, axis=1)
+        df.sort_values(by='distance', inplace=True)
+        print(f'Calculating distance from user and sorting took {time.time() - stime}')
+        print(df.head())
+
+        stime = time.time()
+        in_range = df.apply(lambda row: row['distance'] <= max_radius, axis=1)
+        df = df[in_range] if len(df[in_range]) > 0 else df.head()
+        print(f"Filtering took {time.time() - stime}: found {len(list(df['name']))}")
+
+        stime = time.time()
+        # results_dict = dict()
+        # self.retrieve_forecast(list(df['name']), results_dict)
+        results_dict = self.runner(list(df['name']))
+        print(f'Retrieval took {time.time() - stime}: found {len(df)}')
+
+        return results_dict, dict(zip(df['name'],df['distance']))
+
+    def _average(self, iter):
+        n = len(iter)
+        return sum(iter)/n
+
+    def top_sorted(self, forecasts: dict, max_height:int, n: int = 5):
+        df = self.to_df(forecasts)
+        # conditions_w = 50.0
+        def conditions_score(c):
+            conditions_order = [None, 'VERY_POOR', 'FLAT', 'POOR', 'POOR_TO_FAIR', 'FAIR', 'FAIR_TO_GOOD', 'GOOD', 'GOOD_TO_EPIC', 'EPIC']
+            return conditions_order.index(c) / 7
+
+        # height_w = 50.0
+        def height_score(s, max_height: int = 8):
+            if s > max_height + 2:
+                s = 0
+            return s/max_height
+
+
+        # wind_w = 50.0
+        def wind_score(speed, dir, swell_dir):
+            # is offshore: check against swell direction
+            opp_wind = (dir + 180) % 360
+
+            wind_score = -abs(opp_wind - swell_dir) / 180
+            if abs(wind_score) <= 0.5:
+                return wind_score + (self._inside(speed, 25))/25
+            else:
+                return wind_score - (self._inside(speed, 25))/25
+
+        def total_score(row):
+            return self._average(
+                [
+                    conditions_score(row['conditions']),
+                    height_score(row['wave_min'], max_height),
+                    height_score(row['wave_max'] if row['wave_occ'] == None else max(row['wave_max'], row['wave_occ']), max_height),
+                    wind_score(row['wind_speed'], row['wind_dir'], row['swell_dir'])
+                ]
+            )
+
+        df['sortable'] = df.apply(total_score, axis=1)
+        df.sort_values(by='sortable', ascending=False, inplace=True)
+        print(df.head())
+        df.to_csv('LETS_SEE_HERE.csv', index=False)
+        return df.head(n)
+        # print(df)
+
+        # print(df.to_dict())
+
+        # ret_df = df[['name','conditions']]
+        # print(ret_df)
+        # return ret_df
+
     def _inside(self, idx: int, length: int):
         return min(max(0, idx), length)
 
@@ -156,6 +235,21 @@ class ForecastFetcher:
             res = pool[k]
             total_cnt += len(res)
         return total_cnt
+
+    def to_df(self, forecast_infos: dict[str, ForecastRecord]):
+        data = []
+        for (spot_name, fcst) in forecast_infos.items():
+            data.append(
+                [spot_name,
+                fcst.conditions.value,
+                fcst.wind.speed,
+                fcst.wind.direction,
+                fcst.wave_height.min,
+                fcst.wave_height.max,
+                fcst.wave_height.occasional,
+                fcst.swells[0].direction])
+
+        return pd.DataFrame(data, columns=['name','conditions','wind_speed','wind_dir','wave_min','wave_max','wave_occ','swell_dir'])
 
     def to_csv(self, filename: str, forecast_infos: dict[str, ForecastRecord]) -> None:
         with open(filename, "a+") as fname:
@@ -195,6 +289,7 @@ class ForecastFetcher:
 
         # Pull forecast for all spots and format to ForecastRecord
         res_pool = dict()
+        thread_pool = []
         if len(names) < self.nthreads:
             # if less than the number of threads just do on a single thread
             res_pool[0] = dict()
@@ -214,15 +309,16 @@ class ForecastFetcher:
                         args=[p1, res_pool[i]],
                         name=f'{i}')
                 t.start()
+                thread_pool.append(t)
 
         # wait for threads giving updates
         it = 1
-        while len(threading.enumerate()) > 1:
+        while any(map(lambda x: x.is_alive(), thread_pool)):
             s_cnt = self._recursive_dict_len(res_pool)
             f_cnt = len(self.err_tracker)
-            print(f'[{it}] -- {len(threading.enumerate())-1} JOBS ALIVE -- {s_cnt} SUCCESSFUL -- {f_cnt} FAILURES') if self.verbose > 0 else None
+            print(f'[{it}] -- {len(threading.enumerate())-1} JOBS ALIVE -- {s_cnt} SUCCESSFUL -- {f_cnt} FAILURES') if ((self.verbose > 0) and ((it-1) % 10 == 0)) else None
             it += 1
-            time.sleep(5)
+            # time.sleep(5)
 
         if len(self.err_tracker) > 0:
             print('Showing Error Dictionary:') if self.verbose > 0 else None
@@ -236,4 +332,3 @@ class ForecastFetcher:
         print(f'[ COMPLETE - ForecastRetrieval {self.nthreads}-threads ]###################') if self.verbose > 0 else None
 
         return master
-

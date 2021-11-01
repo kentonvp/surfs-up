@@ -7,6 +7,12 @@ class Location:
     latitude: float
     longitude: float
 
+    def to_dict(self):
+        return {
+            "latitude": self.latitude,
+            'longitude': self.longitude
+        }
+
 
 def _distance_miles(lat1: float, lon1: float, lat2: float, lon2: float):
     """Calculate the distance between two coordinates using Haversine formula.

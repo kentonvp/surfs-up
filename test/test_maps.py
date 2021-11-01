@@ -10,3 +10,9 @@ class TestMaps(unittest.TestCase):
 
         self.assertAlmostEqual(distance_miles(blacks, la_jolla), 1.009704105)
         self.assertAlmostEqual(distance_miles(la_jolla, blacks), 1.009704105)
+
+    def test_to_dict(self) -> None:
+        blacks = Location(32.877231, -117.25303)
+
+        self.assertIn('latitude', blacks.to_dict())
+        self.assertIn('longitude', blacks.to_dict())
