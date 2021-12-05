@@ -1,4 +1,3 @@
-# from surfsup.surfline.api import SurflineAPI
 from surfsup.dto.forecast_parser import ForecastFetcher
 from surfsup.utils import joinpath
 from surfsup.maps import Location
@@ -21,6 +20,7 @@ class MessageBuilder:
         return f'Surf Report: {value}\nSurf is {surf_min}ft to {surf_max}ft and is {surf_rel.lower()}.\nHave fun!'
 
     def build_report_message(self, spot_name: str) -> str:
+        spot_name = self.normalize_apostrophe_chars(spot_name)
         if not self.is_spot(spot_name):
             possible_corrections = ['i', 'dont', 'know', 'yet']
             return f'ERROR: {spot_name} was invalid. Did you mean: {possible_corrections}'
@@ -36,3 +36,9 @@ class MessageBuilder:
             return f"Name: {row['name']}\nDistance: {distances[row['name']]}\nSortValue: {row.sortable}\nCond: {row.conditions}\nWind: ({row.wind_speed},{row.wind_dir})\nWaves:{row.wave_min}-{row.wave_max}({row.wave_occ})\nSwell:{row.swell_dir}\n"
 
         return '\n'.join([fmt_spot(spot) for _, spot in best_fcsts.iterrows()])
+
+    def normalize_apostrophe_chars(self, spot_name: str) -> str:
+        validated_name = spot_name.replace("`", "'")    # replace grave accent (U+0060)
+        validated_name = validated_name.replace("‘", "'")   # replace open signle quote (U+2018)
+        validated_name = validated_name.replace("’", "'")   # replace close single quote (U+2019)
+        return validated_name

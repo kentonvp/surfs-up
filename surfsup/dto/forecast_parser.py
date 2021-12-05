@@ -7,7 +7,9 @@ import pandas as pd
 from surfsup.maps import Location, distance_miles
 
 from surfsup.surfline.api import SurflineAPI
-from surfsup.dto.forecast_dto import *
+from surfsup.dto.forecast_dto import ConditionRecord, WindRecord, \
+        SwellRecord, WaveHeightRecord, TideRecord, TideCollectionRecord, \
+        WeatherRecord, ForecastRecord
 
 
 def or_none(name, func, json_arg, err_verbose:bool = False):
@@ -124,15 +126,15 @@ class ForecastFetcher:
     def retrieve_forecast(self, names, spot_forecast):
         cnt: int = 0
         for spot_name in names:
-            spot_data = None
+            spot_data = {}
             try:
                 spot_data = self.surfline.spot_check(spot_name)
             except Exception as exc:
                 print(f'ERROR {exc}') if self.verbose > 0 else None
 
             try:
-                if spot_data == None:
-                    print('Spot data is None') if self.verbose > 0 else None
+                if not spot_data:
+                    print('Spot data is empty') if self.verbose > 0 else None
                     continue
 
                 forecast_info = spot_data['forecast']
@@ -167,8 +169,6 @@ class ForecastFetcher:
         print(f"Filtering took {time.time() - stime}: found {len(list(df['name']))}")
 
         stime = time.time()
-        # results_dict = dict()
-        # self.retrieve_forecast(list(df['name']), results_dict)
         results_dict = self.runner(list(df['name']))
         print(f'Retrieval took {time.time() - stime}: found {len(df)}')
 
@@ -180,19 +180,15 @@ class ForecastFetcher:
 
     def top_sorted(self, forecasts: dict, max_height:int, n: int = 5):
         df = self.to_df(forecasts)
-        # conditions_w = 50.0
         def conditions_score(c):
             conditions_order = [None, 'VERY_POOR', 'FLAT', 'POOR', 'POOR_TO_FAIR', 'FAIR', 'FAIR_TO_GOOD', 'GOOD', 'GOOD_TO_EPIC', 'EPIC']
             return conditions_order.index(c) / 7
 
-        # height_w = 50.0
         def height_score(s, max_height: int = 8):
             if s > max_height + 2:
                 s = 0
             return s/max_height
 
-
-        # wind_w = 50.0
         def wind_score(speed, dir, swell_dir):
             # is offshore: check against swell direction
             opp_wind = (dir + 180) % 360
@@ -215,16 +211,7 @@ class ForecastFetcher:
 
         df['sortable'] = df.apply(total_score, axis=1)
         df.sort_values(by='sortable', ascending=False, inplace=True)
-        print(df.head())
-        df.to_csv('LETS_SEE_HERE.csv', index=False)
         return df.head(n)
-        # print(df)
-
-        # print(df.to_dict())
-
-        # ret_df = df[['name','conditions']]
-        # print(ret_df)
-        # return ret_df
 
     def _inside(self, idx: int, length: int):
         return min(max(0, idx), length)
@@ -289,7 +276,7 @@ class ForecastFetcher:
 
         # Pull forecast for all spots and format to ForecastRecord
         res_pool = dict()
-        thread_pool = []
+        thread_pool = list[threading.Thread]()
         if len(names) < self.nthreads:
             # if less than the number of threads just do on a single thread
             res_pool[0] = dict()
@@ -297,12 +284,12 @@ class ForecastFetcher:
         else:
             # multithreading forecast_pull
             n = int(math.ceil(len(names) / self.nthreads))
-            prev = 0
+            prev_i = 0
             for i in range(self.nthreads):
                 res_pool[i] = dict()
-                next = self._inside(prev+n, len(names))
-                p1 = names[prev:next]
-                prev = next
+                next_i = self._inside(prev_i+n, len(names))
+                p1 = names[prev_i:next_i]
+                prev_i = next_i
 
                 t = threading.Thread(
                         target=self.retrieve_forecast,
