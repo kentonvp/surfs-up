@@ -38,6 +38,7 @@ class MessageBuilder:
         return '\n'.join([fmt_spot(spot) for _, spot in best_fcsts.iterrows()])
 
     def normalize_apostrophe_chars(self, spot_name: str) -> str:
-        validated_name = spot_name.replace("`", "'")
-        validated_name = validated_name.replace("’", "'")
+        validated_name = spot_name.replace("`", "'")    # replace grave accent (U+0060)
+        validated_name = validated_name.replace("‘", "'")   # replace open signle quote (U+2018)
+        validated_name = validated_name.replace("’", "'")   # replace close single quote (U+2019)
         return validated_name
