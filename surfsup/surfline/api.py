@@ -1,7 +1,6 @@
 import json
 
 import requests
-from typing import List, Dict
 from bs4 import BeautifulSoup
 from surfsup.login_info import LoginInfo
 from surfsup.surfline.database import SurflineSpotDB
@@ -52,20 +51,20 @@ class SurflineAPI:
 
         return True
 
-    def get_spot_names(self) -> List[str]:
+    def get_spot_names(self) -> list[str]:
         return list(self.database.table['name'])
 
     def _build_spot_url(self, spot_name: str) -> str:
         spot_record = self.database.select(spot_name, by_att='name')
         return spot_record.url
 
-    def spot_check(self, name: str) -> Dict:
+    def spot_check(self, name: str) -> dict:
         spot_url = self._build_spot_url(name)
         resp = self.session.get(spot_url)
         spot_data = self.format_report_response_data(resp)
         return spot_data
 
-    def format_report_response_data(self, resp: Response) -> Dict:
+    def format_report_response_data(self, resp: Response) -> dict:
         soup = BeautifulSoup(resp.text, 'html.parser')
 
         # find the script which contains all the report data
