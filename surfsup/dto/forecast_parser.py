@@ -5,6 +5,7 @@ import time
 import traceback
 import pandas as pd
 from surfsup.maps import Location, distance_miles
+from spellchecker import SpellChecker
 
 from surfsup.surfline.api import SurflineAPI
 from surfsup.dto.forecast_dto import ConditionRecord, WindRecord, \
@@ -115,6 +116,7 @@ class ForecastFetcher:
     nthreads: int
     pp: PrettyPrinter = PrettyPrinter(indent=2)
     verbose: int
+    speller: SpellChecker
 
     def __init__(self, db_path: str, nthreads: int = 16, verbose: int = 0):
         self.surfline = SurflineAPI(db_path)
@@ -122,6 +124,11 @@ class ForecastFetcher:
         self.nthreads = nthreads
         self.err_tracker = []
         self.verbose = verbose
+
+        # initialize speller: only include the valid spot names
+        self.speller = SpellChecker(case_sensitive=True)
+        self.speller.word_frequency.dictionary.clear()
+        self.speller.word_frequency.load_words(self.surfline.get_spot_names())
 
     def retrieve_forecast(self, names, spot_forecast):
         cnt: int = 0
@@ -174,10 +181,6 @@ class ForecastFetcher:
 
         return results_dict, dict(zip(df['name'],df['distance']))
 
-    def _average(self, iter):
-        n = len(iter)
-        return sum(iter)/n
-
     def top_sorted(self, forecasts: dict, max_height:int, n: int = 5):
         df = self.to_df(forecasts)
         def conditions_score(c):
@@ -195,12 +198,12 @@ class ForecastFetcher:
 
             wind_score = -abs(opp_wind - swell_dir) / 180
             if abs(wind_score) <= 0.5:
-                return wind_score + (self._inside(speed, 25))/25
+                return wind_score + (self.__inside(speed, 25))/25
             else:
-                return wind_score - (self._inside(speed, 25))/25
+                return wind_score - (self.__inside(speed, 25))/25
 
         def total_score(row):
-            return self._average(
+            return self.__average(
                 [
                     conditions_score(row['conditions']),
                     height_score(row['wave_min'], max_height),
@@ -213,15 +216,21 @@ class ForecastFetcher:
         df.sort_values(by='sortable', ascending=False, inplace=True)
         return df.head(n)
 
-    def _inside(self, idx: int, length: int):
-        return min(max(0, idx), length)
+    def partial_name(self, spot_name: str, num_back: int=5) -> list[str]:
+        options = list(self.speller.candidates(spot_name))[:num_back]
+        out: list[str] = []
+        for op in options:
+            nms = list(map(lambda x: x.lower(), self.surfline.get_spot_names()))
+            idx = -1
+            try:
+                idx = nms.index(op)
+            except:
+                # Unable to find op in nms
+                pass
+            if idx >= 0:
+                out.append(self.surfline.get_spot_names()[idx])
 
-    def _recursive_dict_len(self, pool: dict):
-        total_cnt: int = 0
-        for k in pool.keys():
-            res = pool[k]
-            total_cnt += len(res)
-        return total_cnt
+        return out
 
     def to_df(self, forecast_infos: dict[str, ForecastRecord]):
         data = []
@@ -287,7 +296,7 @@ class ForecastFetcher:
             prev_i = 0
             for i in range(self.nthreads):
                 res_pool[i] = dict()
-                next_i = self._inside(prev_i+n, len(names))
+                next_i = self.__inside(prev_i+n, len(names))
                 p1 = names[prev_i:next_i]
                 prev_i = next_i
 
@@ -301,7 +310,7 @@ class ForecastFetcher:
         # wait for threads giving updates
         it = 1
         while any(map(lambda x: x.is_alive(), thread_pool)):
-            s_cnt = self._recursive_dict_len(res_pool)
+            s_cnt = self.__recursive_dict_len(res_pool)
             f_cnt = len(self.err_tracker)
             print(f'[{it}] -- {len(threading.enumerate())-1} JOBS ALIVE -- {s_cnt} SUCCESSFUL -- {f_cnt} FAILURES') if ((self.verbose > 0) and ((it-1) % 10 == 0)) else None
             it += 1
@@ -319,3 +328,17 @@ class ForecastFetcher:
         print(f'[ COMPLETE - ForecastRetrieval {self.nthreads}-threads ]###################') if self.verbose > 0 else None
 
         return master
+
+    def __inside(self, idx: int, length: int):
+        return min(max(0, idx), length)
+
+    def __recursive_dict_len(self, pool: dict):
+        total_cnt: int = 0
+        for k in pool.keys():
+            res = pool[k]
+            total_cnt += len(res)
+        return total_cnt
+
+    def __average(self, iter):
+        n = len(iter)
+        return sum(iter)/n
