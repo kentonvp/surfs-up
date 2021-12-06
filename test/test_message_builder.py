@@ -20,12 +20,12 @@ class TestMessageBuilder(unittest.TestCase):
             'waveHeight': { 'min': 1, 'max': 4, 'humanRelation': 'shoulder to head high' }
         }
         self.assertEqual(
-            'Surf Report: FAIR\nSurf is 1ft to 4ft and is shoulder to head high.\nHave fun!',
+            'Surf Report: FAIR\nSurf is 1ft to 4ft, shoulder to head high.\nHave fun!',
             self.messenger.clean(ex_obj))
 
     def test_build_report_message_bad(self):
-        msg = self.messenger.build_report_message("SMLKJDF")
-        self.assertEqual("ERROR: SMLKJDF was invalid. Did you mean: ['i', 'dont', 'know', 'yet']", msg)
+        msg = self.messenger.build_report_message("Blcks")
+        self.assertEqual("ERROR: Blcks was invalid. Possible corrections:\nBlacks\nDid you need /help ?", msg)
 
     def test_build_report_message_good(self):
         ex_obj = {
@@ -36,7 +36,7 @@ class TestMessageBuilder(unittest.TestCase):
             mock_spot_check.return_value = {'forecast': ex_obj }
             msg = self.messenger.build_report_message("Blacks")
             self.assertEqual(
-                'Surf Report: FAIR\nSurf is 1ft to 4ft and is shoulder to head high.\nHave fun!',
+                'Surf Report: FAIR\nSurf is 1ft to 4ft, shoulder to head high.\nHave fun!',
                 msg)
 
     def test_build_report_message_apostrophes(self):
@@ -48,5 +48,5 @@ class TestMessageBuilder(unittest.TestCase):
             mock_spot_check.return_value = {'forecast': ex_obj }
             msg = self.messenger.build_report_message("Swami's")
             self.assertEqual(
-                'Surf Report: FAIR\nSurf is 1ft to 4ft and is shoulder to head high.\nHave fun!',
+                'Surf Report: FAIR\nSurf is 1ft to 4ft, shoulder to head high.\nHave fun!',
                 msg)
