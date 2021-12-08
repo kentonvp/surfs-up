@@ -178,8 +178,8 @@ class ForecastFetcher:
         stime = time.time()
         results_dict = self.runner(list(df['name']))
         print(f'Retrieval took {time.time() - stime}: found {len(df)}')
-
-        return results_dict, dict(zip(df['name'],df['distance']))
+        # TODO so ugly
+        return results_dict, dict(zip(df['name'], df['distance'])), dict(zip(df['name'], df['url']))
 
     def top_sorted(self, forecasts: dict, max_height:int, n: int = 5):
         df = self.to_df(forecasts)

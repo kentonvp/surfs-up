@@ -3,6 +3,7 @@ from surfsup.comm.str_constants import SURFSUP_USAGE_MSG
 from surfsup.utils import joinpath
 from surfsup.maps import Location
 import math
+from surfsup.comm.markdown import gen_link, fmt_text
 
 
 class MessageBuilder:
@@ -39,27 +40,28 @@ class MessageBuilder:
         new_message = self.clean(report_data['forecast'])
         return new_message
 
-    def build_report_message_for_location(self, loc: Location, max_radius: int, max_height: int):
-        fcst_results, distances = self.forecast_fetcher.by_loc(loc, max_radius)
-        best_fcsts = self.forecast_fetcher.top_sorted(fcst_results, max_height, n=5)
-        def fmt_spot(row):
-            # return f"Name: {row['name']}\n" + \
-            return f"Name: {row['name']} {self.get_emoji(row.conditions)}\n" + \
-                    f"Distance: {round(distances[row['name']], 2)}\n" + \
-                    f"SortValue: {round(row.sortable, 4)}\n" + \
-                    f"Cond: {row.conditions}\n" + \
-                    f"Wave size: {row.wave_min}-{row.wave_max}" + \
-                        str(f" (occ. {row.wave_occ})\n" if row.wave_occ and not math.isnan(row.wave_occ) else "\n") + \
-                    f"Wind: (Speed: {row.wind_speed}, Dir: {round(row.wind_dir, 2)})\n" + \
-                    f"Swell Dir: {round(row.swell_dir, 2)}\n"
+    def spot_message_fmt(self, obj):
+        return self.__format_nameline(obj) + \
+                self.__format_scoreline(obj) + \
+                self.__format_conditionsline(obj) + \
+                self.__format_wavesizeline(obj) + \
+                self.__format_windline(obj)
 
-        return '\n'.join([fmt_spot(spot) for _, spot in best_fcsts.iterrows()])
+    def build_report_message_for_location(self, loc: Location, max_radius: int, max_height: int):
+        fcst_results, distances, urls = self.forecast_fetcher.by_loc(loc, max_radius)
+        best_fcsts = self.forecast_fetcher.top_sorted(fcst_results, max_height, n=5)
+
+        def mk_dict(row):
+            other_info = {'distance': distances[row['name']], 'url': urls[row['name']], 'max_height': max_height}
+            return {**row.to_dict(), **other_info}
+
+        return '\n'.join([self.spot_message_fmt(mk_dict(spot)) for _, spot in best_fcsts.iterrows()])
 
     def replace_apostrophe_lookalikes(self, spot_name: str) -> str:
-        out = spot_name.replace("`", "'")    # replace grave accent (U+0060)
-        out = out.replace("‘", "'")   # replace open signle quote (U+2018)
-        out = out.replace("’", "'")   # replace close single quote (U+2019)
-        return out
+        # grave accent (U+0060), open signle quote (U+2018), close single quote (U+2019)
+        return spot_name.replace("`", "'") \
+                .replace("‘", "'") \
+                .replace("’", "'")
 
     def normalize_spot_name(self, spot_name: str) -> str:
         out = self.replace_apostrophe_lookalikes(spot_name)
@@ -81,3 +83,59 @@ class MessageBuilder:
         if condition.lower() in ['good_to_epic', 'epic']:
             return '\U0001F924\U0001F4A6\U0001F4A3' # drooling + sweat drops + bomb
         return '\U0001F4A9' # poop
+
+    def get_approx_direction(self, direction):
+        directions = ["N \U00002193", "NE \U00002199", "E \U00002B05", "SE \U00002196", "S \U00002B06", "SW \U00002197", "W \U000027A1", "NW \U00002198"]
+        degs = [0, 45, 90, 135, 180, 225, 275, 315]
+
+        one16 = 22.5 # one16 of a circle 360 degrees
+        if direction > degs[-1] + one16:
+            return directions[0]
+
+        for i in range(1,len(degs)):
+            if degs[i-1] <= direction < degs[i]:
+                if degs[i] - direction < direction - degs[i-1]:
+                    nearest = i
+                else:
+                    nearest = i-1
+                break
+
+        return directions[nearest]
+
+    def get_size_emoji(self, height, max_height):
+        if height < max_height - 1:
+            return "\U0001F535" # blue circle
+        if height < max_height + 1:
+            return "\U0001F7E2" # green circle
+        return "\U0001F534"
+
+    def __format_nameline(self, obj):
+        namelink = gen_link(obj['name'], obj['url'])
+        distance = round(obj['distance'], 2)
+        return namelink + fmt_text(f" ({distance}mi)\n")
+
+    def __format_scoreline(self, obj):
+        val = round(obj['sortable'], 4)
+        return fmt_text(f"ScoreValue: {val}\n")
+
+    def __format_conditionsline(self, obj):
+        emoji = self.get_emoji(obj['conditions'])
+        conds = obj['conditions'].lower() if obj['conditions'] else "None"
+        return fmt_text(f"Cond: {emoji} {conds}\n")
+
+    def __format_wavesizeline(self, obj):
+        ave_height = (obj['wave_max']+obj['wave_min'])/2.0
+        emoji = self.get_size_emoji(ave_height, obj['max_height'])
+
+        occ = "\n"
+        if obj['wave_occ'] and not math.isnan(obj['wave_occ']):
+            occ = f" (occ. {obj['wave_occ']})\n"
+
+        wave_range = f"{obj['wave_min']}-{obj['wave_max']}"
+        return fmt_text(f"Wave size: {emoji} {wave_range}{occ}")
+
+    def __format_windline(self, obj):
+        speed = obj['wind_speed']
+        emoji = self.get_approx_direction(obj['wind_dir'])
+        direction = round(obj['wind_dir'], 2)
+        return fmt_text(f"Wind: {speed}mph {emoji} {direction}\n")
