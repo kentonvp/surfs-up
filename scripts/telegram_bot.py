@@ -1,4 +1,5 @@
 import os
+import time
 import traceback
 import telebot
 
@@ -18,7 +19,7 @@ def give_tmp_storage(uid):
 
 """Main"""
 my_secret = os.environ['TELEGRAM_KEY']
-bot = telebot.TeleBot(my_secret)
+bot = telebot.TeleBot(my_secret, threaded=True, num_threads=4)
 messenger = MessageBuilder()
 
 
@@ -222,18 +223,22 @@ def location_report(message):
                 activity_preferences.surf_height)
 
     if len(msg) > 0:
-        bot.send_message(message.chat.id, msg)
+        bot.send_message(message.chat.id, msg, parse_mode="MarkdownV2")
 
 
 # def run_bot():
-try:
-    print("SurfsUp-Bot has started")
-    bot.polling()
-except (Exception, KeyboardInterrupt) as exp:
-    trace = traceback.format_exc(limit=1)
-    print(trace)
+while True:
+    try:
+        print("SurfsUp-Bot has started")
+        bot.polling()
+    except (Exception, KeyboardInterrupt) as exp:
+        trace = traceback.format_exc(limit=1)
+        print(trace)
 
-print("Exception occured, exporting users to json file...")
-export_users('user_information.json', user_information)
-export_users('user_information_backup.json', user_information)
+    print("Exception occured, exporting users to json file...")
+    export_users('user_information.json', user_information)
+    export_users('user_information_backup.json', user_information)
+
+    print("You have 5 seconds to quit with ^C...")
+    time.sleep(5)
 
