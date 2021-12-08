@@ -7,7 +7,8 @@ SURFSUP_USAGE_MSG = "Commands -- start with '/' and are one word. List of curren
         "\n  /setup -- This helps you setup your preferences for an activity" + \
         "\n  /activity -- Select your activity and see what is currently set" + \
         "\n\nSpot Check -- send me the name of a spot and I'll give you a brief summary of it's current report" + \
-        "\n\nPin Drop -- send me a location and I'll give you a list of the top 5 spots based on YOUR preferences"
+        "\n\nPin Drop -- send me a location and I'll give you a list of the top 5 spots based on YOUR preferences" + \
+        "\n\nFound a bug? -- Email surfsup.devhelp@gmail.com with a description of what happened"
         # "\n  /creator -- Little 'c' creator" + \
 
 SURFSUP_BIO_MSG = "The name's Kenton. I'm an ocean lover. My primary activity of choice" + \
