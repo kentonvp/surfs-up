@@ -52,7 +52,11 @@ class MessageBuilder:
         best_fcsts = self.forecast_fetcher.top_sorted(fcst_results, max_height, n=5)
 
         def mk_dict(row):
-            other_info = {'distance': distances[row['name']], 'url': urls[row['name']], 'max_height': max_height}
+            other_info = {
+                'distance': distances[row['name']],
+                'url': urls[row['name']],
+                'max_height': max_height
+            }
             return {**row.to_dict(), **other_info}
 
         return '\n'.join([self.spot_message_fmt(mk_dict(spot)) for _, spot in best_fcsts.iterrows()])
@@ -85,7 +89,11 @@ class MessageBuilder:
         return '\U0001F4A9' # poop
 
     def get_approx_direction(self, direction):
-        directions = ["N \U00002193", "NE \U00002199", "E \U00002B05", "SE \U00002196", "S \U00002B06", "SW \U00002197", "W \U000027A1", "NW \U00002198"]
+        directions = [
+            "N \U00002193", "NE \U00002199", "E \U00002B05",
+            "SE \U00002196", "S \U00002B06", "SW \U00002197",
+            "W \U000027A1", "NW \U00002198"
+        ]
         degs = [0, 45, 90, 135, 180, 225, 275, 315]
 
         one16 = 22.5 # one16 of a circle 360 degrees
