@@ -184,8 +184,13 @@ class ForecastFetcher:
     def top_sorted(self, forecasts: dict, max_height:int, n: int = 5):
         df = self.to_df(forecasts)
         def conditions_score(c):
-            conditions_order = [None, 'VERY_POOR', 'FLAT', 'POOR', 'POOR_TO_FAIR', 'FAIR', 'FAIR_TO_GOOD', 'GOOD', 'GOOD_TO_EPIC', 'EPIC']
-            return conditions_order.index(c) / 7
+            conditions_order = [
+                None, 'FLAT', 'VERY_POOR', 'POOR', 'POOR_TO_FAIR', 'FAIR',
+                'FAIR_TO_GOOD', 'GOOD', 'GOOD_TO_EPIC', 'EPIC'
+            ]
+            # returns a ratio (GOOD_TO_EPIC and EPIC deserver > 100% score)
+            return conditions_order.index(c) / (len(conditions_order)-2)
+
 
         def height_score(s, max_height: int = 8):
             if s > max_height + 2:
