@@ -45,7 +45,8 @@ class MessageBuilder:
                 self.__format_scoreline(obj) + \
                 self.__format_conditionsline(obj) + \
                 self.__format_wavesizeline(obj) + \
-                self.__format_windline(obj)
+                self.__format_windline(obj) + \
+                self.__format_swellline(obj)
 
     def build_report_message_for_location(self, loc: Location, max_radius: int, max_height: int):
         fcst_results, distances, urls = self.forecast_fetcher.by_loc(loc, max_radius)
@@ -147,3 +148,9 @@ class MessageBuilder:
         emoji = self.get_approx_direction(obj['wind_dir'])
         direction = round(obj['wind_dir'], 2)
         return fmt_text(f"Wind: {speed}mph {emoji} {direction}\n")
+
+    def __format_swellline(self, obj):
+        height = round(obj['swell_ht'], 2)
+        emoji = self.get_approx_direction(obj['wind_dir'])
+        direction = round(obj['swell_dir'], 2)
+        return fmt_text(f"Swell: {height}ft {emoji} {direction}\n")

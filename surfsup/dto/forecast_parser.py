@@ -248,9 +248,10 @@ class ForecastFetcher:
                 fcst.wave_height.min,
                 fcst.wave_height.max,
                 fcst.wave_height.occasional,
-                fcst.swells[0].direction])
+                fcst.swells[0].direction,
+                fcst.swells[0].height])
 
-        return pd.DataFrame(data, columns=['name','conditions','wind_speed','wind_dir','wave_min','wave_max','wave_occ','swell_dir'])
+        return pd.DataFrame(data, columns=['name','conditions','wind_speed','wind_dir','wave_min','wave_max','wave_occ','swell_dir','swell_ht'])
 
     def to_csv(self, filename: str, forecast_infos: dict[str, ForecastRecord]) -> None:
         with open(filename, "a+") as fname:
