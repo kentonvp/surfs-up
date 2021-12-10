@@ -151,6 +151,7 @@ class MessageBuilder:
 
     def __format_swellline(self, obj):
         height = round(obj['swell_ht'], 2)
+        period = obj['swell_pd']
         emoji = self.get_approx_direction(obj['wind_dir'])
         direction = round(obj['swell_dir'], 2)
-        return fmt_text(f"Swell: {height}ft {emoji} {direction}\n")
+        return fmt_text(f"Swell: {height}ft at {period}s {emoji} {direction}\n")
