@@ -101,6 +101,7 @@ class MessageBuilder:
         if direction > degs[-1] + one16:
             return directions[0]
 
+        nearest = len(degs)-1
         for i in range(1,len(degs)):
             if degs[i-1] <= direction < degs[i]:
                 if degs[i] - direction < direction - degs[i-1]:

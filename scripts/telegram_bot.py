@@ -3,12 +3,15 @@ import time
 import traceback
 import telebot
 
+import sys
+sys.path.append(os.getcwd())
+
 from surfsup.comm.message_builder import MessageBuilder
 from surfsup.maps import Location
 from surfsup.user import ShortboardPreferences, User, Activity, export_users, read_users
 from surfsup.comm.str_constants import SURFSUP_WELCOME_MSG, SURFSUP_USAGE_MSG, SURFSUP_BIO_MSG
 
-user_information: dict[int, User] = read_users('user_information.json')
+user_information: dict[int, User] = read_users('data/user_information.json')
 tmp_storage = {}
 
 
@@ -19,7 +22,7 @@ def give_tmp_storage(uid):
 
 """Main"""
 my_secret = os.environ['TELEGRAM_KEY']
-bot = telebot.TeleBot(my_secret, threaded=True, num_threads=4)
+bot = telebot.TeleBot(my_secret, threaded=True, num_threads=2)
 messenger = MessageBuilder()
 
 
@@ -210,7 +213,7 @@ def location_report(message):
                 activity_preferences.travel_distance,
                 activity_preferences.surf_height)
     else:
-        print('default user')
+        print('using default user')
         user = user_information[0]
         print(user.to_json())
         activity_preferences = user.get_activity_preferences()
@@ -226,8 +229,7 @@ def location_report(message):
         bot.send_message(message.chat.id, msg, parse_mode="MarkdownV2")
 
 
-# def run_bot():
-while True:
+while 1:
     try:
         print("SurfsUp-Bot has started")
         bot.polling()
@@ -236,9 +238,12 @@ while True:
         print(trace)
 
     print("Exception occured, exporting users to json file...")
-    export_users('user_information.json', user_information)
-    export_users('user_information_backup.json', user_information)
+    export_users('data/user_information.json', user_information)
+    export_users('data/user_information_backup.json', user_information)
 
     print("You have 5 seconds to quit with ^C...")
     time.sleep(5)
 
+
+# print("SurfsUp-Bot has started")
+# bot.polling()

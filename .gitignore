@@ -1,5 +1,6 @@
 **.DS_Store
 **/dev_env
+**/dev_env2
 **/.vscode
 **/__pycache__
 **.json
