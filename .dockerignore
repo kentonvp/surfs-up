@@ -1,0 +1,6 @@
+**coverage*
+*.vscode
+**data
+**dev_env
+**test
+**.json

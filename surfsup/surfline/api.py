@@ -1,21 +1,19 @@
 import json
 
-import requests
-from bs4 import BeautifulSoup
+from requests_html import HTMLResponse, HTMLSession
 from surfsup.login_info import LoginInfo
 from surfsup.surfline.database import SurflineSpotDB
-
-Response = requests.models.Response
+from cachetools import cached, TTLCache
 
 
 class SurflineAPI:
-    session: requests.Session
+    session: HTMLSession
     database: SurflineSpotDB
 
     def __init__(self, db_name: str):
         """Create a surlfine with a connected database."""
         self.database = SurflineSpotDB(db_name)
-        self.session = requests.Session()
+        self.session = HTMLSession()
 
     def __del__(self):
         """Close all connections to Surfline."""
@@ -58,18 +56,25 @@ class SurflineAPI:
         spot_record = self.database.select(spot_name, by_att='name')
         return spot_record.url
 
+    @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
     def spot_check(self, name: str) -> dict:
         spot_url = self._build_spot_url(name)
-        resp = self.session.get(spot_url)
+        resp: HTMLResponse = self.session.get(spot_url)
+        i = 0
+        while not resp.ok and i < 10:
+            resp: HTMLResponse = self.session.get(spot_url)
+            i += 1
         spot_data = self.format_report_response_data(resp)
         return spot_data
 
-    def format_report_response_data(self, resp: Response) -> dict:
-        soup = BeautifulSoup(resp.text, 'html.parser')
+    def format_report_response_data(self, resp: HTMLResponse) -> dict:
+        scripts = resp.html.element('script')
+        # with open("data/making_resp.html", "w+") as f:
+        #     f.write(resp.text)
 
         # find the script which contains all the report data
-        script_tag = soup.find_all('script')[13]
-        to_parse = str(script_tag.string)   # type: ignore
+        script_tag = scripts[13]
+        to_parse = str(script_tag.text)   # type: ignore
 
         # parse to a python obj
         s_idx = to_parse.find('=') + 2

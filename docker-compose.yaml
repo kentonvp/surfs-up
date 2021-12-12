@@ -1,0 +1,9 @@
+version: "3"
+services:
+  telebot:
+    image: kentonvp/surfsup-bot:${IMAGE_TAG}
+    volumes:
+      - ./data:/data
+    environment:
+      - TELEGRAM_KEY=${TELEGRAM_KEY}
+      - PYTHONUNBUFFERED=1
