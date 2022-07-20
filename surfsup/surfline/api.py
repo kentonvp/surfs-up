@@ -1,4 +1,5 @@
 import json
+import traceback
 
 from requests_html import HTMLResponse, HTMLSession
 from surfsup.login_info import LoginInfo
@@ -68,16 +69,20 @@ class SurflineAPI:
         return spot_data
 
     def format_report_response_data(self, resp: HTMLResponse) -> dict:
-        scripts = resp.html.element('script')
-        # with open("data/making_resp.html", "w+") as f:
-        #     f.write(resp.text)
+        try:
+            scripts = resp.html.element('script')
+            # with open("data/making_resp.html", "w+") as f:
+            #     f.write(resp.text)
 
-        # find the script which contains all the report data
-        script_tag = scripts[13]
-        to_parse = str(script_tag.text)   # type: ignore
+            # find the script which contains all the report data
+            script_tag = scripts[39]
+            to_parse = str(script_tag.text)   # type: ignore
 
-        # parse to a python obj
-        s_idx = to_parse.find('=') + 2
-        all_surf_data = json.loads(to_parse[s_idx:])
+            # parse to a python obj
+            # s_idx = to_parse.find('=') + 2
+            all_surf_data = json.loads(to_parse)
 
-        return all_surf_data['spot']['report']['data']
+            return all_surf_data['props']['pageProps']['ssrReduxState']['spot']['report']['data']
+        except Exception:
+            print('Surfline might have changed their response!!!! (format_report_response_data())')
+            return {}
