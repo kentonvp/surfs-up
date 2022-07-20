@@ -64,7 +64,6 @@ requests==2.26.0
 requests-html==0.10.0
 six==1.16.0
 soupsieve==2.2.1
--e git+ssh://git@github.com/Kenton-VanPeursem/surfs-up.git@e448277bb53b042d7d558460e71658ef60899db2#egg=surfsup&subdirectory=surfsup
 testpath==0.5.0
 toml==0.10.2
 tomli==2.0.1
