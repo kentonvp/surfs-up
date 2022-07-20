@@ -3,12 +3,14 @@ import os
 import unittest
 from pprint import PrettyPrinter
 from unittest.mock import patch
+import pytest
 
 from surfsup.dto.forecast_parser import ForecastFetcher, or_none
 from surfsup.dto.forecast_dto import *
 from surfsup.utils import joinpath
 
 
+@pytest.mark.skip
 def test_joinpath(fname: str):
     return joinpath(os.getcwd(), 'test', 'testfiles', fname)
 
@@ -43,7 +45,7 @@ class TestForecastParser(unittest.TestCase):
 
     def test_csv_export(self):
         csv_name = test_joinpath(self.TMP_CSV_NAME)
-        
+
         names: list[str] = [
             'Blackies','Blacks','La Jolla Shores'
             ]
