@@ -57,9 +57,7 @@ class SurflineAPI:
         spot_record = self.database.select(spot_name, by_att='name')
         return spot_record.url
 
-    @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
-    def spot_check(self, name: str) -> dict:
-        spot_url = self._build_spot_url(name)
+    def spot_check_link(self, spot_url: str) -> dict:
         resp: HTMLResponse = self.session.get(spot_url)
         i = 0
         while not resp.ok and i < 10:
@@ -67,6 +65,11 @@ class SurflineAPI:
             i += 1
         spot_data = self.format_report_response_data(resp)
         return spot_data
+
+    @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
+    def spot_check(self, name: str) -> dict:
+        spot_url = self._build_spot_url(name)
+        return self.spot_check_link(spot_url)
 
     def format_report_response_data(self, resp: HTMLResponse) -> dict:
         try:
