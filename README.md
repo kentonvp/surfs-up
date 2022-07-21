@@ -20,7 +20,7 @@
 
 2. Install requirements:
     ```bash
-    (dev_env) $ pip install -r requirements.txt
+    (dev_env) $ pip3 install -r requirements.txt
     ```
 
 
@@ -28,14 +28,14 @@
 - Run all tests in `test/`
 
     ```bash
-    (dev_env) $ python3 -m unittest -v
+    (dev_env) $ python3 -m pytest test/*
     ```
 
 ## **Running Coverage Report:**
 1. Run coverage using tests as entry point
 
     ```bash
-    (dev_env) $ coverage run -m unittest
+    (dev_env) $ coverage run -m pytest test/*
     ```
 
 2. Show coverage report to terminal
@@ -53,12 +53,31 @@
 
 ## **Playground Instructions:**
 
-```bash
-(dev_env) $ SURFLINE_USERNAME=XXXXX SURFLINE_PASSWORD=XXXXX python3 playground.py
-<class 'requests.models.Response'>
-parsing took 0.06013798713684082 seconds
-{   'forecast': {
-    ...
+    ```bash
+    (dev_env) $ SURFLINE_USERNAME=XXXXX SURFLINE_PASSWORD=XXXXX python3 playground.py
+    <class 'requests.models.Response'>
+    parsing took 0.06013798713684082 seconds
+    {   'forecast': {
+        ...
+        }
     }
-}
-```
+    ```
+
+## **Generate Spot URL Lookup Database**
+
+    ```bash
+    (dev_env) $ python3 scripts/populate_spot_db.py -h
+    usage: populate_spot_db.py [-h] [--ow] filename
+
+    Process to build report URLs
+
+    positional arguments:
+      filename    file to store table (CSV format)
+
+    optional arguments:
+      -h, --help  show this help message and exit
+      --ow        overwrite file at argument filename
+    ```
+This could take a long while. It searches every page of the surfline domain, building a
+list of valid report urls and scraping basic information about each spot.
+
