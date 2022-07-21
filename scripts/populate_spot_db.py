@@ -1,4 +1,8 @@
 import os
+import sys
+import argparse
+
+sys.path.append(os.getcwd())
 
 import requests
 from bs4 import BeautifulSoup
@@ -49,7 +53,10 @@ def report_data_to_record(link: str, data: dict):
     return SpotRecord.from_dict(rec_dict)
 
 
-def populate_spot_database(db_name: str, starting_link: str = "https://www.surfline.com") -> list[str]:
+def populate_spot_database(
+    db_name: str,
+    starting_link: str = "https://www.surfline.com"
+) -> list[str]:
     """BFS for new surf report urls.
 
     Search for new surf report urls and add them to the supplied database.
@@ -61,8 +68,7 @@ def populate_spot_database(db_name: str, starting_link: str = "https://www.surfl
     surfline = SurflineAPI(db_name)
     queue = [starting_link]
 
-    seen = dict.fromkeys([str(u)
-                          for u in surfline.database.table['url']], True)
+    seen = dict.fromkeys([str(u) for u in surfline.database.table['url']], True)
     errors = []
     count = 0
     while len(queue) > 0:
@@ -77,7 +83,7 @@ def populate_spot_database(db_name: str, starting_link: str = "https://www.surfl
 
             if is_valid_report_url(link):
                 surfline.database.add_record(
-                    report_data_to_record(link, surfline.spot_check(link)))
+                    report_data_to_record(link, surfline.spot_check_link(link)))
                 count += 1
 
             resp = requests.get(link)
@@ -91,14 +97,34 @@ def populate_spot_database(db_name: str, starting_link: str = "https://www.surfl
     return errors
 
 
-"""Main"""
-cwd = os.getcwd()
-database_name = joinpath(cwd, 'data', 'spot_lookups.csv')
-errors = populate_spot_database(
-    database_name, 'https://www.surfline.com/surf-report/')
+def parse_script_args():
+    parser = argparse.ArgumentParser(description='Process to build report URLs')
+    parser.add_argument('filename',
+        help='file to store table (CSV format)'
+    )
+    parser.add_argument('--ow',
+        action='store_true',
+        required=False,
+        help='overwrite file at argument filename',
+        dest='overwrite'
+    )
+    return parser.parse_args()
 
-# print errors to a file
-with open('error_urls.txt', 'a+') as fname:
-    for err_url in errors:
-        fname.write(err_url + "\n")
 
+if __name__ == '__main__':
+    """Main"""
+    args = parse_script_args()
+    db_name = joinpath(os.getcwd(), 'data', args.filename)
+
+    if os.path.exists(db_name) and not args.overwrite:
+        print(f'[Error:] There already exists a file at {db_name}. Please rename or rerun with the --ow flag.')
+        sys.exit(1)
+
+    errors = populate_spot_database(db_name)
+
+    if errors:
+        print(f'Encountered {len(errors)} errors. Exporting to error_urls for analysis.')
+        # print errors to a file
+        with open('error_urls.txt', 'a+') as fname:
+            for err_url in errors:
+                fname.write(err_url + "\n")
