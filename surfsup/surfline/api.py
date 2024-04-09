@@ -21,15 +21,15 @@ class SurflineAPI:
 
     def authenticate_user(self, login: LoginInfo):
         """Authenticate the Surfline connection with a premium login."""
-        url_path = 'https://services.surfline.com/trusted/token?isShortLived=false'
+        url_path = "https://services.surfline.com/trusted/token?isShortLived=false"
         payload = {
-            'grant_type': 'password',
-            'username': login.username,
-            'password': login.password,
-            'device_id': 'Safari-14.1.2',
-            'device_type': 'Safari 14.1.2 on OS X 10.15.7',
-            'forced': True,
-            'authorizationString': 'Basic NWM1OWU3YzNmMGI2Y2IxYWQwMmJhZjY2OnNrX1FxWEpkbjZOeTVzTVJ1MjdBbWcz'
+            "grant_type": "password",
+            "username": login.username,
+            "password": login.password,
+            "device_id": "Safari-14.1.2",
+            "device_type": "Safari 14.1.2 on OS X 10.15.7",
+            "forced": True,
+            "authorizationString": "Basic NWM1OWU3YzNmMGI2Y2IxYWQwMmJhZjY2OnNrX1FxWEpkbjZOeTVzTVJ1MjdBbWcz",
         }
 
         resp = self.session.post(url_path, data=payload)
@@ -44,19 +44,19 @@ class SurflineAPI:
         """Check if the names list of spot names are valid"""
         for n in names:
             if not self.valid_name(n):
-                print(f'{n} is not a valid spot name')
+                print(f"{n} is not a valid spot name")
                 return False
 
         return True
 
     def get_spot_names(self) -> list[str]:
-        return list(self.database.table['name'])
+        return list(self.database.table["name"])
 
     def _build_spot_url(self, spot_name: str) -> str:
-        spot_record = self.database.select(spot_name, by_att='name')
+        spot_record = self.database.select(spot_name, by_att="name")
         return spot_record.url
 
-    @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
+    @cached(cache=TTLCache(maxsize=1024, ttl=60 * 5))
     def spot_check(self, name: str) -> dict:
         spot_url = self._build_spot_url(name)
         resp: HTMLResponse = self.session.get(spot_url)
@@ -68,16 +68,16 @@ class SurflineAPI:
         return spot_data
 
     def format_report_response_data(self, resp: HTMLResponse) -> dict:
-        scripts = resp.html.element('script')
+        scripts = resp.html.element("script")
         # with open("data/making_resp.html", "w+") as f:
         #     f.write(resp.text)
 
         # find the script which contains all the report data
         script_tag = scripts[13]
-        to_parse = str(script_tag.text)   # type: ignore
+        to_parse = str(script_tag.text)  # type: ignore
 
         # parse to a python obj
-        s_idx = to_parse.find('=') + 2
+        s_idx = to_parse.find("=") + 2
         all_surf_data = json.loads(to_parse[s_idx:])
 
-        return all_surf_data['spot']['report']['data']
+        return all_surf_data["spot"]["report"]["data"]

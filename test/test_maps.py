@@ -3,7 +3,6 @@ from surfsup.maps import Location, distance_miles
 
 
 class TestMaps(unittest.TestCase):
-
     def test_approx(self) -> None:
         blacks = Location(32.877231, -117.25303)
         la_jolla = Location(32.863, -117.257)
@@ -14,5 +13,5 @@ class TestMaps(unittest.TestCase):
     def test_to_dict(self) -> None:
         blacks = Location(32.877231, -117.25303)
 
-        self.assertIn('latitude', blacks.to_dict())
-        self.assertIn('longitude', blacks.to_dict())
+        self.assertIn("latitude", blacks.to_dict())
+        self.assertIn("longitude", blacks.to_dict())
